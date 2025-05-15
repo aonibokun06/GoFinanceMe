@@ -88,6 +88,8 @@ const AllRequests = () => {
   }
 
   return (
+    <>
+    <h1 className='text-black text-[60px] text-center'>Open Requests</h1>
     <div className="p-4">
       {error && <div className="text-red-500 mb-4">{error}</div>}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -96,6 +98,8 @@ const AllRequests = () => {
         ))}
       </div>
     </div>
+    </>
+   
   );
 };
 

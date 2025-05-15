@@ -10,7 +10,7 @@ const Dashboard = () => {
 
   return (
     <>
-        <h1 className='text-black text-center'>Dashboard</h1>
+        <h1 className='text-black text-[60px] text-center'>Dashboard</h1>
         <div className="p-4">
         <div className="flex justify-center gap-4 mb-4">
             <Link to = "/my-requests">
