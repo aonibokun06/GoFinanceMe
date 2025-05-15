@@ -31,7 +31,9 @@ const NewRequestForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-4">
+    <>
+      <h1 className='text-black text-[60px] text-center'>Make New Request</h1>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6 p-4 items-center">
       <input
         type="number"
         placeholder="Amount"
@@ -57,6 +59,8 @@ const NewRequestForm = () => {
         Create Request
       </button>
     </form>
+    </>
+   
   );
 };
 
