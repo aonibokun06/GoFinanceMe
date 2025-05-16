@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { CheckCircleIcon, XCircleIcon, ClockIcon, ChatBubbleLeftEllipsisIcon, UserCircleIcon } from '@heroicons/react/24/solid';
-import { HandThumbUpIcon, HandThumbDownIcon } from '@heroicons/react/24/outline';
+import React from 'react';
+import { CheckCircleIcon, XCircleIcon, ClockIcon, ChatBubbleLeftEllipsisIcon, UserCircleIcon, NoSymbolIcon } from '@heroicons/react/24/solid';
+import { HandThumbUpIcon, HandThumbDownIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 
 const formatCurrency = (amount) => {
   if (typeof amount !== 'number') return 'N/A';
@@ -14,22 +14,24 @@ const formatDate = (timestamp) => {
   });
 };
 
-const LoanOfferCard = ({ offer, onAcceptOffer, onDeclineOffer, loanRequestStatus }) => {
-  const [isAccepting, setIsAccepting] = useState(false);
-  const [isDeclining, setIsDeclining] = useState(false);
+const LoanOfferCard = ({ offer, onAccept, onDecline, isProcessing, isRequestFunded, currentUserId }) => {
 
-  const canTakeAction = offer.status === 'pending' && loanRequestStatus === 'seekingFunds';
+  // Determine if action buttons should be shown at all
+  const showActionButtons = offer.status === 'pending';
+  
+  // Accept button specific condition
+  const canAccept = offer.status === 'pending' && !isRequestFunded;
+  // Decline button specific condition (can always decline a pending offer regardless of request funding status)
+  const canDecline = offer.status === 'pending';
 
-  const handleAccept = async () => {
-    setIsAccepting(true);
-    await onAcceptOffer(offer.id, offer); // Pass full offer for context if needed by parent
-    setIsAccepting(false);
+  const handleAccept = () => {
+    if (!canAccept || isProcessing) return;
+    onAccept(offer); // Parent now passes the full offer object to onAccept
   };
 
-  const handleDecline = async () => {
-    setIsDeclining(true);
-    await onDeclineOffer(offer.id);
-    setIsDeclining(false);
+  const handleDecline = () => {
+    if (!canDecline || isProcessing) return;
+    onDecline(offer.id);
   };
 
   const getStatusPill = () => {
@@ -41,14 +43,23 @@ const LoanOfferCard = ({ offer, onAcceptOffer, onDeclineOffer, loanRequestStatus
       case 'declined':
         return <span className="px-2.5 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full flex items-center"><XCircleIcon className="h-3.5 w-3.5 mr-1"/>Declined</span>;
       case 'auto-declined':
-        return <span className="px-2.5 py-1 text-xs font-medium bg-slate-100 text-slate-600 rounded-full flex items-center"><XCircleIcon className="h-3.5 w-3.5 mr-1"/>Auto-Declined</span>;
+        return <span className="px-2.5 py-1 text-xs font-medium bg-slate-100 text-slate-600 rounded-full flex items-center"><NoSymbolIcon className="h-3.5 w-3.5 mr-1"/>Auto-Declined</span>;
       default:
-        return <span className="px-2.5 py-1 text-xs font-medium bg-slate-100 text-slate-600 rounded-full">{offer.status}</span>;
+        return <span className="px-2.5 py-1 text-xs font-medium bg-slate-100 text-slate-600 rounded-full">{offer.status || 'Unknown'}</span>;
     }
   };
 
+  let cardBorderColor = 'border-transparent'; // Default or for pending
+  if (offer.status === 'accepted') {
+    cardBorderColor = 'border-green-500';
+  } else if (offer.status === 'declined') {
+    cardBorderColor = 'border-red-500';
+  } else if (offer.status === 'auto-declined') {
+    cardBorderColor = 'border-slate-400';
+  }
+
   return (
-    <div className="bg-white shadow-lg rounded-xl overflow-hidden transition-all duration-300 hover:shadow-2xl">
+    <div className={`bg-white shadow-lg rounded-xl overflow-hidden transition-all duration-300 hover:shadow-2xl border-2 ${cardBorderColor}`}>
       <div className="p-5">
         <div className="flex justify-between items-start mb-3">
           <div className="flex items-center space-x-3">
@@ -84,31 +95,42 @@ const LoanOfferCard = ({ offer, onAcceptOffer, onDeclineOffer, loanRequestStatus
         )}
       </div>
 
-      {canTakeAction && (
-        <div className="px-5 py-3 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row gap-3">
+      {/* Action buttons section - only shown for pending offers */}
+      {showActionButtons && (
+        <div className="px-5 py-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row gap-3">
           <button
             onClick={handleAccept}
-            disabled={isAccepting || isDeclining}
-            className="flex-1 justify-center text-white font-semibold py-2.5 px-4 rounded-lg shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-150 ease-in-out
-                       bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 focus:ring-green-500
-                       disabled:opacity-60 disabled:cursor-not-allowed flex items-center"
+            disabled={!canAccept || isProcessing} // Disabled if not canAccept or if isProcessing
+            className={`flex-1 justify-center text-white font-semibold py-2.5 px-4 rounded-lg shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-150 ease-in-out flex items-center
+                       ${canAccept ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 focus:ring-green-500' : 'bg-slate-400 cursor-not-allowed'}
+                       disabled:opacity-60 disabled:cursor-not-allowed`}
           >
-            {isAccepting ? (
-              <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            {isProcessing ? (
+              <ArrowPathIcon className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" />
             ) : <HandThumbUpIcon className="h-5 w-5 mr-2" />}
             Accept Offer
           </button>
           <button
             onClick={handleDecline}
-            disabled={isAccepting || isDeclining}
-            className="flex-1 justify-center text-slate-700 bg-slate-200 hover:bg-slate-300 font-medium py-2.5 px-4 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400 transition-colors 
-                       disabled:opacity-60 disabled:cursor-not-allowed flex items-center"
+            disabled={!canDecline || isProcessing} // Disabled if not canDecline or if isProcessing
+            className={`flex-1 justify-center font-medium py-2.5 px-4 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors flex items-center
+                        ${canDecline ? 'text-slate-700 bg-slate-200 hover:bg-slate-300 focus:ring-slate-400' : 'text-slate-500 bg-slate-100 cursor-not-allowed' }
+                        disabled:opacity-60 disabled:cursor-not-allowed`}
           >
-             {isDeclining ? (
-              <svg className="animate-spin -ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+             {isProcessing ? (
+              <ArrowPathIcon className="animate-spin -ml-1 mr-2 h-5 w-5" />
             ) : <HandThumbDownIcon className="h-5 w-5 mr-2" />}
             Decline Offer
           </button>
+        </div>
+      )}
+      
+      {/* Display a clear message if request is funded and this offer was not the accepted one but was pending */}
+      {isRequestFunded && offer.status === 'pending' && (
+        <div className="px-5 py-3 bg-yellow-50 border-t border-yellow-200 text-center">
+          <p className="text-xs text-yellow-700">
+            This loan request has been funded by another offer. This offer can no longer be accepted.
+          </p>
         </div>
       )}
     </div>
