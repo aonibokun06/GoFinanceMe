@@ -38,7 +38,7 @@ const AllRequests = () => {
     fetchRequests();
   }, [db]);
 
-  const handleFund = async (requestId) => {
+  const handleFund = async (requestId, amount) => {
     try {
       setError(null);
       const requestRef = doc(db, "requests", requestId);
@@ -50,7 +50,7 @@ const AllRequests = () => {
         }
     
         const requestData = requestDoc.data();
-        const newFundedSoFar = (requestData.fundedSoFar || 0) + 100; // Example: Add $100 to funding
+        const newFundedSoFar = (requestData.fundedSoFar || 0) + amount; // Example: Add $100 to funding
     
         if (newFundedSoFar > requestData.amount) {
           throw new Error("Cannot overfund the request!");

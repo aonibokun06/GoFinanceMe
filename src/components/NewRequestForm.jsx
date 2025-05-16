@@ -43,7 +43,7 @@ const NewRequestForm = () => {
       />
       <input
         type="number"
-        placeholder="Max APR (%)"
+        placeholder="APR (%)"
         value={formData.maxAPR}
         onChange={(e) => setFormData({ ...formData, maxAPR: e.target.value })}
         className="border p-2 rounded"
