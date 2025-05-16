@@ -18,7 +18,7 @@ const MyRequestCard = ({ request, onFund }) => {
   return (
     <div className="border p-4 rounded shadow-md bg-white">
       <h3 className="text-lg font-bold">Amount: ${request.amount?.toLocaleString()}</h3>
-      <p>Max APR: {request.maxAPR}%</p>
+      <p>APR: {request.maxAPR}%</p>
       <p>Term: {request.term} months</p>
       
       {/* Progress bar */}

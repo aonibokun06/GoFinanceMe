@@ -1,24 +1,30 @@
 // MyRequests.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import MyRequestCard from './MyRequestCard';
 
 const MyRequests = () => {
   const [requests, setRequests] = useState([]);
+  const hasFetched = useRef(false);
   const auth = getAuth();
   const db = getFirestore();
 
   useEffect(() => {
     const fetchRequests = async () => {
+      if (hasFetched.current) {
+        return; // Prevent fetching again
+      } 
+      hasFetched.current = true; // Mark as fetched
+
       const q = query(
         collection(db, 'requests'),
         where('borrowerId', '==', auth.currentUser.uid)
       );
       const querySnapshot = await getDocs(q);
       setRequests(querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      console.log("fetched");
     };
-
     fetchRequests();
   }, [auth, db]);
 
