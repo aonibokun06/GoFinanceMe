@@ -80,12 +80,6 @@ export default function Header({ user, onLogout }) {
                                 >
                                     Log In
                                 </Link>
-                                <Link
-                                    to='/register'
-                                    className={`${navLinkClasses} ${pathname === '/register' ? activeNavLinkClasses : ''} bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white`}
-                                >
-                                    Sign Up
-                                </Link>
                             </>
                         ) : (
                             <>
