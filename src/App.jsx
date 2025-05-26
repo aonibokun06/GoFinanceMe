@@ -5,6 +5,7 @@ import {
   Route,
   Navigate
 } from 'react-router-dom'
+import { getAuth, signOut } from 'firebase/auth';
 import Login from './components/Login'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
@@ -30,8 +31,17 @@ const App = () => {
   //   return <Login></Login>
   // }
   function handleLogout() {
-    // setUser(null)
+    const auth = getAuth();
+    signOut(auth)
+      .then(() => {
+        console.log('User signed out successfully');
+        window.location.href = '/login'; // Redirect to login page
+      })
+      .catch((error) => {
+        console.error('Error signing out:', error);
+      });
   }
+
   return (
     <Router>
       <div className='min-h-screen bg-gray-100'>
